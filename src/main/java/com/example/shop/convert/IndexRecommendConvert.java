@@ -16,6 +16,11 @@ import java.util.List;
 public interface IndexRecommendConvert {
     IndexRecommendConvert INSTANCE = Mappers.getMapper(IndexRecommendConvert.class);
 
+//    @Mapping(expression = "java(MapStruct.strToList(indexRecommend.getPictures()))", target = "pictures")default
+//    IndexRecommendVO convertToIndexRecommendVo() {
+//        return convertToIndexRecommendVo(null);
+//    }
+
     @Mapping(expression = "java(MapStruct.strToList(indexRecommend.getPictures()))", target = "pictures")
     IndexRecommendVO convertToIndexRecommendVo(IndexRecommend indexRecommend);
 
