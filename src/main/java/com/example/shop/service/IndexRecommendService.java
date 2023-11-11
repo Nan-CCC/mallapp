@@ -1,7 +1,10 @@
 package com.example.shop.service;
 
+import com.example.shop.VO.IndexRecommendVO;
 import com.example.shop.entity.IndexRecommend;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IndexRecommendService extends IService<IndexRecommend> {
 
+    List<IndexRecommendVO> getList();
 }

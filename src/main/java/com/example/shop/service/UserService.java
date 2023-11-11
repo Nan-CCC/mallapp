@@ -5,6 +5,7 @@ import com.example.shop.VO.UserVO;
 import com.example.shop.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.shop.query.UserLoginQuery;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -24,4 +25,7 @@ public interface UserService extends IService<User> {
 
     //修改用户信息
     UserVO editUserInfo(UserVO userVO);
+
+    //修改用户头像
+    String editUserAvatar(Integer userId, MultipartFile file);
 }
