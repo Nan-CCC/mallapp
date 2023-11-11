@@ -14,4 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserShippingAddressService extends IService<UserShippingAddress> {
     Integer saveShippingAddress(AddressVO addressVO);
+
+    //修改地址
+    Integer editShippingAddress(AddressVO addressVO);
 }
