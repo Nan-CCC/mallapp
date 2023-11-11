@@ -1,6 +1,7 @@
 package com.example.shop.controller;
 
 import com.example.shop.VO.LoginResultVO;
+import com.example.shop.VO.UserVO;
 import com.example.shop.common.result.Result;
 import com.example.shop.entity.User;
 import com.example.shop.query.UserLoginQuery;
@@ -33,7 +34,7 @@ public class UserController {
     private final UserService userService;
 
     @Operation(summary = "微信登录")
-    @PostMapping("loginMin")
+    @PostMapping("login/wxMin")
     public Result<LoginResultVO> wxLogin(@RequestBody @Validated UserLoginQuery query) {
         LoginResultVO userVO = userService.login(query);
         return Result.ok(userVO);
@@ -44,6 +45,15 @@ public class UserController {
     private Result<User> getUserInfo(HttpServletRequest request) {
         Integer userId = getUserId(request);
         User userInfo = userService.getUserInfo(userId);
+        return Result.ok(userInfo);
+    }
+
+    @Operation(summary = "修改用户信息")
+    @PutMapping("/profile")
+    private Result<UserVO> editUserInfo(HttpServletRequest request, @RequestBody @Validated UserVO userVO) {
+        Integer userId = getUserId(request);
+        userVO.setId(userId);
+        UserVO userInfo = userService.editUserInfo(userVO);
         return Result.ok(userInfo);
     }
 
