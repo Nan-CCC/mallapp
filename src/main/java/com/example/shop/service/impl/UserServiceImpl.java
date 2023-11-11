@@ -73,4 +73,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         redisService.set(APP_NAME+userVO.getId(),token,APP_TOKEN_EXPIRE_TIME);
         return userVO;
     }
+
+    @Override
+    public User getUserInfo(Integer userId) {
+        User user=baseMapper.selectById(userId);
+        if(user==null){
+            throw new ServerException("用户不存在");
+        }
+        return user;
+    }
 }

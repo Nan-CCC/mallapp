@@ -19,4 +19,6 @@ public interface UserService extends IService<User> {
     用户登录
      */
     LoginResultVO login(UserLoginQuery query);
+
+    User getUserInfo(Integer userId);
 }
