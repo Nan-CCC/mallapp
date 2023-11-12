@@ -57,4 +57,33 @@ public class UserShippingAddressServiceImpl extends ServiceImpl<UserShippingAddr
         updateById(address);
         return address.getId();
     }
+
+    @Override
+    public List<AddressVO> getShippingAddress(Integer userid) {
+        List<UserShippingAddress> addresses = baseMapper.selectList(new LambdaQueryWrapper<UserShippingAddress>().eq(UserShippingAddress::getUserId, userid).orderByDesc(UserShippingAddress::getIsDefault));
+        List<AddressVO> addressVOS = AddressConvert.INSTANCE.convertToAddressVOList(addresses);
+        return addressVOS;
+    }
+
+    @Override
+    public AddressVO getShippingAddressById(Integer id) {
+        UserShippingAddress address=baseMapper.selectById(id);
+        if(address==null){
+            throw new ServerException("地址不存在");
+        }
+        AddressVO addressVO = AddressConvert.INSTANCE.convertToAddressVO(address);
+        return addressVO;
+    }
+
+    @Override
+    public Integer deleteShippingAddress(Integer id) {
+        UserShippingAddress address=baseMapper.selectById(id);
+        if(address==null){
+            throw new ServerException("地址不存在");
+        }
+        Integer i = baseMapper.deleteById(id);
+        return i;
+    }
+
+
 }
