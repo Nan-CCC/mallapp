@@ -6,6 +6,7 @@ import com.example.shop.VO.SubmitOrderVO;
 import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.exception.ServerException;
 import com.example.shop.common.result.Result;
+import com.example.shop.query.OrderPreQuery;
 import com.example.shop.service.UserOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -58,6 +59,15 @@ public class UserOrderController {
         SubmitOrderVO preOrderDetail = userOrderService.getPreOrderDetail(userId);
         return Result.ok(preOrderDetail);
     }
+
+    @Operation(summary = "填写订单-获取立即购买订单")
+    @PostMapping("prew")
+    public Result<SubmitOrderVO> getPreNowOrderDetail(@RequestBody @Validated OrderPreQuery query, HttpServletRequest request) {
+        query.setUserId(getUserId(request));
+        SubmitOrderVO preNowOrderDetail = userOrderService.getPreNowOrderDetail(query);
+        return Result.ok(preNowOrderDetail);
+    }
+
 
 
 

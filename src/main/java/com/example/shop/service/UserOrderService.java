@@ -6,6 +6,7 @@ import com.example.shop.VO.UserOrderVO;
 import com.example.shop.entity.UserOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.shop.entity.UserOrderGoods;
+import com.example.shop.query.OrderPreQuery;
 
 import java.util.List;
 
@@ -25,5 +26,6 @@ public interface UserOrderService extends IService<UserOrder> {
 
     SubmitOrderVO getPreOrderDetail(Integer userId);
 
+    SubmitOrderVO getPreNowOrderDetail(OrderPreQuery query);
 
 }
