@@ -12,6 +12,7 @@ import java.util.List;
 public class GoodsVO {
     @Schema(description = "主键id")
     private String id;
+
     @Schema(description = "商品名称")
     private String name;
     @Schema(description = "商品描述")

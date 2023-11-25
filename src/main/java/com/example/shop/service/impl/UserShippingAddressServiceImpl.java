@@ -60,7 +60,10 @@ public class UserShippingAddressServiceImpl extends ServiceImpl<UserShippingAddr
 
     @Override
     public List<AddressVO> getShippingAddress(Integer userid) {
-        List<UserShippingAddress> addresses = baseMapper.selectList(new LambdaQueryWrapper<UserShippingAddress>().eq(UserShippingAddress::getUserId, userid).orderByDesc(UserShippingAddress::getIsDefault));
+        List<UserShippingAddress> addresses =
+                baseMapper.selectList(new LambdaQueryWrapper<UserShippingAddress>()
+                .eq(UserShippingAddress::getUserId, userid)
+                .orderByDesc(UserShippingAddress::getIsDefault));
         List<AddressVO> addressVOS = AddressConvert.INSTANCE.convertToAddressVOList(addresses);
         return addressVOS;
     }

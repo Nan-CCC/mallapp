@@ -32,11 +32,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     private final GoodsMapper goodsMapper;
     @Override
     public List<Category> getIndexCategoryList() {
-        LambdaQueryWrapper<Category> wrapper=new LambdaQueryWrapper<>();
-        //查询首页和分类都推荐的分类以及首页推荐的分类
-        wrapper.eq(Category::getIsRecommend, CategoryRecommendEnum.ALL_RECOMMEND.getValue()).or().eq(Category::getIsRecommend, CategoryRecommendEnum.CATEGORY_HOME_RECOMMEND.getValue());
+        LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
+        // 查询首页和分类都推荐的分类以及在首页推荐的分类
+        wrapper.eq(Category::getIsRecommend, CategoryRecommendEnum.ALL_RECOMMEND.getValue()).or().eq(Category::getIsRecommend,CategoryRecommendEnum.INDEX_RECOMMEND.getValue());
         wrapper.orderByDesc(Category::getCreateTime);
-        List<Category> list=baseMapper.selectList(wrapper);
+        List<Category> list = baseMapper.selectList(wrapper);
         return list;
     }
 

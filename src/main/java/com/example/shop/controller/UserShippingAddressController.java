@@ -60,7 +60,7 @@ public class UserShippingAddressController {
     }
 
     @Operation(summary = "收货地址详情")
-    @GetMapping("address2")
+    @GetMapping("address/detail")
     public Result<AddressVO> getAddressById(@RequestParam Integer id) {
         AddressVO address = userShippingAddressService.getShippingAddressById(id);
         return Result.ok(address);
