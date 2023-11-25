@@ -1,6 +1,7 @@
 package com.example.shop.service;
 
 import com.example.shop.VO.OrderDetailVO;
+import com.example.shop.VO.OrderLogisticVO;
 import com.example.shop.VO.SubmitOrderVO;
 import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.result.PageResult;
@@ -43,5 +44,7 @@ public interface UserOrderService extends IService<UserOrder> {
 
     void consignOrder(Integer id);
 
+    OrderDetailVO receiptOrder(Integer id);
 
+    OrderLogisticVO getOrderLogistics(Integer id);
 }
