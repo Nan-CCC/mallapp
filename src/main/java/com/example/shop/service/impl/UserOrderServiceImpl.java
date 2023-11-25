@@ -390,6 +390,23 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         }
     }
 
+    @Override
+    public void payOrder(Integer id) {
+        UserOrder userOrder=baseMapper.selectById(id);
+        if(userOrder==null){
+            throw new ServerException("订单不存在");
+        }
+        if(userOrder.getStatus()!=OrderStatusEnum.WAITING_FOR_PAYMENT.getValue()){
+            throw new ServerException("该订单暂时无法支付");
+        }
+
+        userOrder.setStatus(OrderStatusEnum.WAITING_FOR_SHIPMENT.getValue());
+        userOrder.setPayTime(LocalDateTime.now());
+        baseMapper.updateById(userOrder);
+
+        candelScheduledTask();
+    }
+
     public List<UserAddressVO> getAddressListByUserId(Integer userId,Integer addressId){
 
         List<UserShippingAddress> list=userShippingAddressMapper.selectList(new LambdaQueryWrapper<UserShippingAddress>().eq(UserShippingAddress::getUserId,userId));
