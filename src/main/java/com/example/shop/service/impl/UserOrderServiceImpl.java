@@ -11,6 +11,7 @@ import com.example.shop.convert.UserAddressConvert;
 import com.example.shop.entity.*;
 import com.example.shop.enums.OrderStatusEnum;
 import com.example.shop.mapper.*;
+import com.example.shop.query.CancelGoodsQuery;
 import com.example.shop.query.OrderGoodsQuery;
 import com.example.shop.convert.UserOrderDetailConvert;
 import com.example.shop.query.OrderPreQuery;
@@ -334,6 +335,34 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
             list.add(orderDetailVO);
         }
         return new PageResult<>(page.getTotal(),query.getPageSize(),query.getPage(),page.getPages(),list);
+    }
+
+    @Override
+    public OrderDetailVO cancelOrder(CancelGoodsQuery query) {
+        UserOrder userOrder=baseMapper.selectById(query.getId());
+        if(userOrder==null){
+            throw new ServerException("订单信息不存在");
+        }
+        if(userOrder.getStatus()!=OrderStatusEnum.WAITING_FOR_PAYMENT.getValue()){
+            throw new ServerException("订单已付款，取消失败");
+        }
+
+        userOrder.setStatus(OrderStatusEnum.CANCELLED.getValue());
+        userOrder.setCancelReason(query.getCancelReason());
+        userOrder.setCloseTime(LocalDateTime.now());
+        baseMapper.updateById(userOrder);
+        OrderDetailVO orderDetailVO=UserOrderDetailConvert.INSTANCE.convertToOrderDetailVO(userOrder);
+
+        UserShippingAddress userShippingAddress = userShippingAddressMapper.selectById(userOrder.getAddressId());
+        if(userShippingAddress!=null){
+            orderDetailVO.setReceiverContact(userShippingAddress.getReceiver());
+            orderDetailVO.setReceiverAddress(userShippingAddress.getAddress());
+            orderDetailVO.setReceiverMobile(userShippingAddress.getContact());
+        }
+
+        List<UserOrderGoods> goodsList=userOrderGoodsMapper.selectList(new LambdaQueryWrapper<UserOrderGoods>().eq(UserOrderGoods::getOrderId,userOrder.getId()));
+        orderDetailVO.setSkus(goodsList);
+        return orderDetailVO;
     }
 
     public List<UserAddressVO> getAddressListByUserId(Integer userId,Integer addressId){

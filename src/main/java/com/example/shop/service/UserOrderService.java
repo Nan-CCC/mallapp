@@ -7,6 +7,7 @@ import com.example.shop.common.result.PageResult;
 import com.example.shop.entity.UserOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.shop.entity.UserOrderGoods;
+import com.example.shop.query.CancelGoodsQuery;
 import com.example.shop.query.OrderPreQuery;
 import com.example.shop.query.OrderQuery;
 
@@ -33,4 +34,6 @@ public interface UserOrderService extends IService<UserOrder> {
     SubmitOrderVO getRepurchaseOrderDetail(Integer id);
 
     PageResult<OrderDetailVO> getOrderList(OrderQuery query);
+
+    OrderDetailVO cancelOrder(CancelGoodsQuery query);
 }

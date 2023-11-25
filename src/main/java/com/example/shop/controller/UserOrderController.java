@@ -7,6 +7,7 @@ import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.exception.ServerException;
 import com.example.shop.common.result.PageResult;
 import com.example.shop.common.result.Result;
+import com.example.shop.query.CancelGoodsQuery;
 import com.example.shop.query.OrderPreQuery;
 import com.example.shop.query.OrderQuery;
 import com.example.shop.service.UserOrderService;
@@ -89,6 +90,14 @@ public class UserOrderController {
         PageResult<OrderDetailVO> orderList = userOrderService.getOrderList(query);
         return Result.ok(orderList);
     }
+
+    @Operation(summary = "取消订单")
+    @PutMapping("cancel")
+    public Result<OrderDetailVO> cancelOrder(@RequestBody @Validated CancelGoodsQuery query) {
+        OrderDetailVO orderDetailVO = userOrderService.cancelOrder(query);
+        return Result.ok(orderDetailVO);
+    }
+
 
 
 
