@@ -5,8 +5,10 @@ import com.example.shop.VO.OrderDetailVO;
 import com.example.shop.VO.SubmitOrderVO;
 import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.exception.ServerException;
+import com.example.shop.common.result.PageResult;
 import com.example.shop.common.result.Result;
 import com.example.shop.query.OrderPreQuery;
+import com.example.shop.query.OrderQuery;
 import com.example.shop.service.UserOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,12 +62,32 @@ public class UserOrderController {
         return Result.ok(preOrderDetail);
     }
 
+
     @Operation(summary = "填写订单-获取立即购买订单")
     @PostMapping("prew")
     public Result<SubmitOrderVO> getPreNowOrderDetail(@RequestBody @Validated OrderPreQuery query, HttpServletRequest request) {
         query.setUserId(getUserId(request));
         SubmitOrderVO preNowOrderDetail = userOrderService.getPreNowOrderDetail(query);
         return Result.ok(preNowOrderDetail);
+    }
+
+    @Operation(summary = "填写订单 - 获取再次购买订单")
+    @GetMapping("/repurchase")
+    public Result<SubmitOrderVO> getRepurchaseOrderDetail(@RequestParam Integer id) {
+        if (id == null) {
+            throw new ServerException("请求参数异常");
+        }
+        SubmitOrderVO repurchaseOrderDetail = userOrderService.getRepurchaseOrderDetail(id);
+        return Result.ok(repurchaseOrderDetail);
+    }
+
+    @Operation(summary = "订单列表")
+    @PostMapping("page")
+    public Result<PageResult<OrderDetailVO>> getOrderList(@RequestBody @Validated OrderQuery query, HttpServletRequest request) {
+        Integer userId = getUserId(request);
+        query.setUserId(userId);
+        PageResult<OrderDetailVO> orderList = userOrderService.getOrderList(query);
+        return Result.ok(orderList);
     }
 
 
