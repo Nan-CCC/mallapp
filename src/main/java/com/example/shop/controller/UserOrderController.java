@@ -120,6 +120,17 @@ public class UserOrderController {
         return Result.ok();
     }
 
+    @Operation(summary = "模拟发货")
+    @GetMapping("consignment")
+    public void sendGoods(@RequestParam Integer id) {
+        if (id == null) {
+            throw new ServerException("订单不存在");
+        }
+        userOrderService.consignOrder(id);
+        //userOrderService.consignOrder(id)
+//        return Result.ok(orderLogistics);
+    }
+
     @Operation(summary = "确认收货")
     @PutMapping("receipt")
     public Result<OrderDetailVO> receiptOrder(@RequestParam Integer id) {
