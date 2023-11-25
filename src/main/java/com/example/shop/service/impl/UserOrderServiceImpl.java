@@ -1,18 +1,16 @@
 package com.example.shop.service.impl;
 
+import com.baomidou.mybatisplus.core.assist.ISqlRunner;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.shop.VO.OrderDetailVO;
-import com.example.shop.VO.UserOrderVO;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.example.shop.VO.*;
 import com.example.shop.common.exception.ServerException;
-import com.example.shop.entity.Goods;
-import com.example.shop.entity.UserOrder;
-import com.example.shop.entity.UserOrderGoods;
-import com.example.shop.entity.UserShippingAddress;
+import com.example.shop.convert.UserAddressConvert;
+import com.example.shop.entity.*;
 import com.example.shop.enums.OrderStatusEnum;
-import com.example.shop.mapper.GoodsMapper;
-import com.example.shop.mapper.UserOrderMapper;
+import com.example.shop.mapper.*;
 import com.example.shop.query.OrderGoodsQuery;
-import com.example.shop.service.UserOrderDetailConvert;
+import com.example.shop.convert.UserOrderDetailConvert;
 import com.example.shop.service.UserOrderGoodsService;
 import com.example.shop.service.UserOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -31,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -52,6 +51,10 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
     private ScheduledExecutorService executorService= Executors.newScheduledThreadPool(1);
     private ScheduledFuture<?> cancelTask;
 
+    UserShippingAddressMapper userShippingAddressMapper;
+    UserOrderGoodsMapper userOrderGoodsMapper;
+    UserShoppingCartMapper userShoppingCartMapper;
+
     @Async
     public void scheduleOrderCancel(UserOrder userOrder){
         cancelTask=executorService.schedule(()->{
@@ -68,8 +71,6 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
             cancelTask.cancel(true);
         }
     }
-
-
 
 
     @Override
@@ -146,6 +147,7 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         OrderDetailVO orderDetailVO= UserOrderDetailConvert.INSTANCE.convertToOrderDetailVO(userOrder);
         orderDetailVO.setTotalMoney(userOrder.getTotalPrice());
 
+
         UserShippingAddress userShippingAddress=userShippingAddressMapper.selectById(userOrder.getAddressId());
 
         if(userShippingAddress==null){
@@ -154,6 +156,7 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         orderDetailVO.setReceiverContact(userShippingAddress.getReceiver());
         orderDetailVO.setReceiverMobile(userShippingAddress.getContact());
         orderDetailVO.setReceiverAddress(userShippingAddress.getAddress());
+
 
         List<UserOrderGoods> list=userOrderGoodsMapper.selectList(new LambdaQueryWrapper<UserOrderGoods>().eq(UserOrderGoods::getOrderId,id));
 
@@ -169,5 +172,83 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         return orderDetailVO;
     }
 
+    @Override
+    public SubmitOrderVO getPreOrderDetail(Integer userId) {
+
+        SubmitOrderVO submitOrderVO=new SubmitOrderVO();
+        List<UserShoppingCart> cartList=userShoppingCartMapper.selectList(new LambdaQueryWrapper<UserShoppingCart>().eq(UserShoppingCart::getUserId,userId).eq(UserShoppingCart::getSelected,true));
+        if(cartList.size()==0){
+            return null;
+        }
+
+        List<UserAddressVO> addressList=getAddressListByUserId(userId,null);
+
+        BigDecimal totalPrice=new BigDecimal(0);
+        Integer totalCount=0;
+        BigDecimal totalPayPrice=new BigDecimal(0);
+        BigDecimal totalFreight=new BigDecimal(0);
+
+        List<UserOrderGoodsVO> goodsList=new ArrayList<>();
+        for(UserShoppingCart shoppingCart:cartList){
+            Goods goods=goodsMapper.selectById(shoppingCart.getGoodsId());
+            UserOrderGoodsVO userOrderGoodsVO = new UserOrderGoodsVO();
+            userOrderGoodsVO.setId(goods.getId());
+            userOrderGoodsVO.setName(goods.getName());
+            userOrderGoodsVO.setPicture(goods.getCover());
+            userOrderGoodsVO.setCount(shoppingCart.getCount());
+            userOrderGoodsVO.setAttrsText(shoppingCart.getAttrsText());
+            userOrderGoodsVO.setPrice(goods.getOldPrice());
+            userOrderGoodsVO.setPayPrice(goods.getPrice());
+            userOrderGoodsVO.setTotalPrice(goods.getFreight()+goods.getPrice()*shoppingCart.getCount());
+            userOrderGoodsVO.setTotalPayPrice(userOrderGoodsVO.getTotalPrice());
+
+            BigDecimal freight=new BigDecimal(goods.getFreight().toString());
+            BigDecimal goodsPrice=new BigDecimal(goods.getPrice().toString());
+            BigDecimal count=new BigDecimal(shoppingCart.getCount().toString());
+
+            BigDecimal price=goodsPrice.multiply(count.add(freight));
+
+            totalPrice=totalPrice.add(price);
+            totalCount+=userOrderGoodsVO.getCount();
+            totalPayPrice=totalPayPrice.add(new BigDecimal(userOrderGoodsVO.getTotalPayPrice().toString()));
+            totalFreight=totalFreight.add(freight);
+            goodsList.add(userOrderGoodsVO);
+
+        }
+
+        OrderInfoVO orderInfoVO=new OrderInfoVO();
+        orderInfoVO.setGoodsCount(totalCount);
+        orderInfoVO.setTotalPayPrice(totalPayPrice.doubleValue());
+        orderInfoVO.setTotalPrice(totalPrice.doubleValue());
+        orderInfoVO.setPostFee(totalFreight.doubleValue());
+
+        submitOrderVO.setUserAddresses(addressList);
+        submitOrderVO.setGoods(goodsList);
+        submitOrderVO.setSummary(orderInfoVO);
+        return submitOrderVO;
+    }
+
+    public List<UserAddressVO> getAddressListByUserId(Integer userId,Integer addressId){
+
+        List<UserShippingAddress> list=userShippingAddressMapper.selectList(new LambdaQueryWrapper<UserShippingAddress>().eq(UserShippingAddress::getUserId,userId));
+
+        UserShippingAddress userShippingAddress=null;
+        UserAddressVO userAddressVO;
+        if(list.size()==0){
+            return null;
+        }
+
+        if(addressId!=null){
+            userShippingAddress=list.stream().filter(item->item.getId().equals(addressId)).collect(Collectors.toList()).get(0);
+            list.remove(userShippingAddress);
+        }
+        List<UserAddressVO> addressList= UserAddressConvert.INSTANCE.convertToUserAddressVOList(list);
+        if(userShippingAddress!=null){
+            userAddressVO=UserAddressConvert.INSTANCE.convertToUserAddressVO(userShippingAddress);
+            userAddressVO.setSelected(true);
+            addressList.add(userAddressVO);
+        }
+        return addressList;
+    }
 
 }

@@ -2,6 +2,7 @@ package com.example.shop.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.example.shop.VO.OrderDetailVO;
+import com.example.shop.VO.SubmitOrderVO;
 import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.exception.ServerException;
 import com.example.shop.common.result.Result;
@@ -49,6 +50,15 @@ public class UserOrderController {
         OrderDetailVO orderDetail = userOrderService.getOrderDetail(id);
         return Result.ok(orderDetail);
     }
+
+    @Operation(summary = "填写订单 - 获取预付订单")
+    @GetMapping("pre")
+    public Result<SubmitOrderVO> getPreOrderDetail(HttpServletRequest request) {
+        Integer userId = getUserId(request);
+        SubmitOrderVO preOrderDetail = userOrderService.getPreOrderDetail(userId);
+        return Result.ok(preOrderDetail);
+    }
+
 
 
 
