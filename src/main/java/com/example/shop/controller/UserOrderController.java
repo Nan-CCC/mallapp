@@ -2,6 +2,7 @@ package com.example.shop.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.example.shop.VO.OrderDetailVO;
+import com.example.shop.VO.OrderLogisticVO;
 import com.example.shop.VO.SubmitOrderVO;
 import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.exception.ServerException;
@@ -128,6 +129,17 @@ public class UserOrderController {
         OrderDetailVO orderDetailVO = userOrderService.receiptOrder(id);
         return Result.ok(orderDetailVO);
     }
+
+    @Operation(summary = "获取物流信息")
+    @GetMapping("logistics")
+    public Result<OrderLogisticVO> getOrderLogistics(@RequestParam Integer id) {
+        if (id == null) {
+            throw new ServerException("订单不存在");
+        }
+        OrderLogisticVO orderLogistics = userOrderService.getOrderLogistics(id);
+        return Result.ok(orderLogistics);
+    }
+
 
 
 
