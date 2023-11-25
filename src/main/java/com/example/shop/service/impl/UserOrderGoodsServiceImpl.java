@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 public class UserOrderGoodsServiceImpl extends ServiceImpl<UserOrderGoodsMapper, UserOrderGoods> implements UserOrderGoodsService {
 
+    //批量插入订单记录
     @Override
     public void batchUserOrderGoods(List<UserOrderGoods> list) {
         saveBatch(list);

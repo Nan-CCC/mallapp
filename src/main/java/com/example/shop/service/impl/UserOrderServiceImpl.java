@@ -1,14 +1,18 @@
 package com.example.shop.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.shop.VO.OrderDetailVO;
 import com.example.shop.VO.UserOrderVO;
 import com.example.shop.common.exception.ServerException;
 import com.example.shop.entity.Goods;
 import com.example.shop.entity.UserOrder;
 import com.example.shop.entity.UserOrderGoods;
+import com.example.shop.entity.UserShippingAddress;
 import com.example.shop.enums.OrderStatusEnum;
 import com.example.shop.mapper.GoodsMapper;
 import com.example.shop.mapper.UserOrderMapper;
 import com.example.shop.query.OrderGoodsQuery;
+import com.example.shop.service.UserOrderDetailConvert;
 import com.example.shop.service.UserOrderGoodsService;
 import com.example.shop.service.UserOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -128,6 +134,39 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         baseMapper.updateById(userOrder);
 
         return userOrder.getId();
+    }
+
+    @Override
+    public OrderDetailVO getOrderDetail(Integer id) {
+
+        UserOrder userOrder=baseMapper.selectById(id);
+        if(userOrder==null){
+            throw new ServerException("订单信息不存在");
+        }
+        OrderDetailVO orderDetailVO= UserOrderDetailConvert.INSTANCE.convertToOrderDetailVO(userOrder);
+        orderDetailVO.setTotalMoney(userOrder.getTotalPrice());
+
+        UserShippingAddress userShippingAddress=userShippingAddressMapper.selectById(userOrder.getAddressId());
+
+        if(userShippingAddress==null){
+            throw new ServerException("收货信息不存在");
+        }
+        orderDetailVO.setReceiverContact(userShippingAddress.getReceiver());
+        orderDetailVO.setReceiverMobile(userShippingAddress.getContact());
+        orderDetailVO.setReceiverAddress(userShippingAddress.getAddress());
+
+        List<UserOrderGoods> list=userOrderGoodsMapper.selectList(new LambdaQueryWrapper<UserOrderGoods>().eq(UserOrderGoods::getOrderId,id));
+
+        orderDetailVO.setSkus(list);
+        orderDetailVO.setPayLatestTime(userOrder.getCreateTime().plusMinutes(30));
+
+        if(orderDetailVO.getPayLatestTime().isAfter(LocalDateTime.now())){
+            Duration duration=Duration.between(LocalDateTime.now(),orderDetailVO.getPayLatestTime());
+
+            orderDetailVO.setCountdown(duration.toMillisPart());
+        }
+
+        return orderDetailVO;
     }
 
 
