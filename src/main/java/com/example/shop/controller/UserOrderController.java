@@ -70,6 +70,7 @@ public class UserOrderController {
     @PostMapping("prew")
     public Result<SubmitOrderVO> getPreNowOrderDetail(@RequestBody @Validated OrderPreQuery query, HttpServletRequest request) {
         query.setUserId(getUserId(request));
+        System.out.println(query);
         SubmitOrderVO preNowOrderDetail = userOrderService.getPreNowOrderDetail(query);
         return Result.ok(preNowOrderDetail);
     }
@@ -117,6 +118,8 @@ public class UserOrderController {
         userOrderService.payOrder(id);
         return Result.ok();
     }
+
+
 
 
 
