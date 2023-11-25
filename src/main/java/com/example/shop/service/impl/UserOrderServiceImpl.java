@@ -251,6 +251,7 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         if(query.getCount()>goods.getInventory()){
             throw new ServerException(goods.getName()+"库存数量不足");
         }
+
         UserOrderGoodsVO userOrderGoodsVO = new UserOrderGoodsVO();
         userOrderGoodsVO.setId(goods.getId());
         userOrderGoodsVO.setName(goods.getName());
@@ -363,6 +364,30 @@ public class UserOrderServiceImpl extends ServiceImpl<UserOrderMapper, UserOrder
         List<UserOrderGoods> goodsList=userOrderGoodsMapper.selectList(new LambdaQueryWrapper<UserOrderGoods>().eq(UserOrderGoods::getOrderId,userOrder.getId()));
         orderDetailVO.setSkus(goodsList);
         return orderDetailVO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteOrder(List<Integer> ids,Integer userId) {
+
+        LambdaQueryWrapper<UserOrder> wrapper=new LambdaQueryWrapper<>();
+        wrapper.eq(UserOrder::getUserId,userId);
+        wrapper.eq(UserOrder::getStatus,OrderStatusEnum.WAITING_FOR_REVIEW.getValue()).or().
+                eq(UserOrder::getStatus,OrderStatusEnum.COMPLETED.getValue()).or().
+                eq(UserOrder::getStatus,OrderStatusEnum.CANCELLED.getValue());
+        List<UserOrder> userOrders=baseMapper.selectList(wrapper);
+
+        List<UserOrder> list=userOrders.stream().filter(item->ids.contains(item.getId())).collect(Collectors.toList());
+
+        if(list.size()==0){
+            throw new ServerException("暂无可以删除的订单");
+        }
+
+        removeByIds(list);
+
+        for(UserOrder userOrder:list){
+            userOrderGoodsMapper.delete(new LambdaQueryWrapper<UserOrderGoods>().eq(UserOrderGoods::getOrderId,userOrder.getId()));
+        }
     }
 
     public List<UserAddressVO> getAddressListByUserId(Integer userId,Integer addressId){
